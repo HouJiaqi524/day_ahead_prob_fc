@@ -145,82 +145,83 @@ def opt_func(mu, sigma, a, b, p=None, func='linear'):
     res = minimize_scalar(lambda r1: objective(r1, a, b, p), bounds=(0, 3*sigma), method='bounded')
     return res
 
-# a=1
-# # b_values = np.linspace(0.1, 30, 100)  # 极端风险惩罚系数的变化范围
-# b_values = [1, 3, 5, 10, 15, 20, 25, 30]
-# # b_values = [15]
-# model = 'LinearPos'
+a=1
+m = '06'
+# b_values = np.linspace(0.1, 30, 100)  # 极端风险惩罚系数的变化范围
+b_values = [1, 3, 5, 10, 15, 20, 25, 30]
+# b_values = [15]
+model = 'LinearPos'
 
-# DF = pd.read_csv('newEnergy_总量.csv', encoding='gbk')
-# # 根据不同时刻点
-# for b in b_values:
-#     k = b/a
-#     print('开始，b=', b)
-#     optimal_resPos = []
-#     optimal_confidencePos = []
-#     optimal_securityPos = []
-#     optimal_resNeg = []
-#     optimal_confidenceNeg = []
-#     optimal_securityNeg = []
+DF = pd.read_csv(f'newEnergy_{m}_aft.csv', encoding='gbk')
+# 根据不同时刻点
+for b in b_values:
+    k = b/a
+    print('开始，b=', b)
+    optimal_resPos = []
+    optimal_confidencePos = []
+    optimal_securityPos = []
+    optimal_resNeg = []
+    optimal_confidenceNeg = []
+    optimal_securityNeg = []
     
-#     optimal_costs_pred = []
-#     optimal_costs_real = []
-#     optimal_is_secu = []
-#     for i, (mu, sigma) in enumerate(zip(DF['mu'], DF['sigma'])):
-#         resPos = opt_func(mu, sigma, a, b, 'LinearPos')
-#         resNeg = opt_func(mu, sigma, a, b, 'LinearNeg')
-#         p = DF.loc[i, 'newEnergy_Pred']
-#         true = DF.loc[i, 'newEnergy__True']
+    optimal_costs_pred = []
+    optimal_costs_real = []
+    optimal_is_secu = []
+    for i, (mu, sigma) in enumerate(zip(DF['mu'], DF['sigma'])):
+        resPos = opt_func(mu, sigma, a, b, 'LinearPos')
+        resNeg = opt_func(mu, sigma, a, b, 'LinearNeg')
+        p = DF.loc[i, 'newEnergy_Pred']
+        true = DF.loc[i, 'newEnergy__True']
         
-#         def calcu_conf(model = 'Neg', r1=1, p=1, mu=1, sigma=1):
-#             if r1<=0.1:
-#                 aa = 0
-#             else:
-#                 if p < 7895.3:  #mu > p
-#                     if 'Pos' in model:
-#                         aa = (r1 + (mu - p))/sigma
-#                     else:
-#                         aa = abs(r1 - (mu - p))/sigma
-#                 else:
-#                     if 'Pos' in model:
-#                         if p-r1 > mu:
-#                             buyd=1
-#                         aa = abs(r1 - (p - mu))/sigma
-#                     else:
-#                         aa = (r1 + (p - mu))/sigma
-#             conf = max(2*norm.cdf(aa)-1, 0)
-#             return conf
+        def calcu_conf(model = 'Neg', r1=1, p=1, mu=1, sigma=1):
+            if r1<=0.1:
+                aa = 0
+            else:
+                if p < 7895.3:  #mu > p
+                    if 'Pos' in model:
+                        aa = (r1 + (mu - p))/sigma
+                    else:
+                        aa = abs(r1 - (mu - p))/sigma
+                else:
+                    if 'Pos' in model:
+                        if p-r1 > mu:
+                            buyd=1
+                        aa = abs(r1 - (p - mu))/sigma
+                    else:
+                        aa = (r1 + (p - mu))/sigma
+            conf = max(2*norm.cdf(aa)-1, 0)
+            return conf
         
-#         # 正备用计算
-#         optimal_resPos.append(resPos.x)
+        # 正备用计算
+        optimal_resPos.append(resPos.x)
 
-#         optimal_confidencePos.append(calcu_conf('Pos', resPos.x, p, mu, sigma))
-#         if p - true <= resPos.x:
-#             secu = 0
-#         else:
-#             secu = p - true - resPos.x
-#         optimal_securityPos.append(secu)
-#         # 负备用计算
-#         optimal_resNeg.append(resNeg.x)
+        optimal_confidencePos.append(calcu_conf('Pos', resPos.x, p, mu, sigma))
+        if p - true <= resPos.x:
+            secu = 0
+        else:
+            secu = p - true - resPos.x
+        optimal_securityPos.append(secu)
+        # 负备用计算
+        optimal_resNeg.append(resNeg.x)
 
-#         optimal_confidenceNeg.append(calcu_conf('Neg', resNeg.x, p, mu, sigma))
-#         if true - p <= resNeg.x:
-#             secu = 0
-#         else:
-#             secu = true - p - resNeg.x
-#         optimal_securityNeg.append(secu)
+        optimal_confidenceNeg.append(calcu_conf('Neg', resNeg.x, p, mu, sigma))
+        if true - p <= resNeg.x:
+            secu = 0
+        else:
+            secu = true - p - resNeg.x
+        optimal_securityNeg.append(secu)
         
 
-#     DF[f'Linear_B={k}A_专项正备用容量'] = optimal_resPos
-#     DF[f'Linear_B={k}A_专项正备用对应置信水平'] = optimal_confidencePos
-#     DF[f'Linear_B={k}A_占用安全裕度正备用容量'] = optimal_securityPos
-#     DF[f'Linear_B={k}A_专项负备用容量'] = optimal_resNeg
-#     DF[f'Linear_B={k}A_专项负备用对应置信水平'] = optimal_confidenceNeg
-#     DF[f'Linear_B={k}A_占用安全裕度负备用容量'] = optimal_securityNeg
-#     print('结束，b=', b)
+    DF[f'Linear_B={k}A_专项正备用容量'] = optimal_resPos
+    DF[f'Linear_B={k}A_专项正备用对应置信水平'] = optimal_confidencePos
+    DF[f'Linear_B={k}A_占用安全裕度正备用容量'] = optimal_securityPos
+    DF[f'Linear_B={k}A_专项负备用容量'] = optimal_resNeg
+    DF[f'Linear_B={k}A_专项负备用对应置信水平'] = optimal_confidenceNeg
+    DF[f'Linear_B={k}A_占用安全裕度负备用容量'] = optimal_securityNeg
+    print('结束，b=', b)
     
-#     # if k % 3 == 0:
-# DF.to_excel(f'data/out/newEnergy_总量_仿真结果quan.xlsx')
+    # if k % 3 == 0:
+DF.to_excel(f'data/out/newEnergy_{m}_aft_仿真结果quan.xlsx')
         
 
 # 曲线图
