@@ -27,8 +27,8 @@ class FeatureSelect():
         selected_vars = self.remove_high_corr_vars(XX, threshold=0.97) # 获取要保留的自变量
         print("\n筛选后的自变量列表：")
         print(selected_vars)
-        selected_cols = [target] + selected_vars
-        # selected_cols = [target,  x.columns[1]]
+        # selected_cols = [target] + selected_vars
+        selected_cols = [target,  x.columns[1]]
         return x[selected_cols]
             
     def remove_high_corr_vars(self, df, threshold=0.9):

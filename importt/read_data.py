@@ -14,11 +14,12 @@ class ReadData():
         """
         # 取负荷数据
 
-        df_power = pd.read_csv('data/processed/gd_newEnergy_data_光伏夜间处理.csv')
+        df_power = pd.read_csv('data/processed/gd_newEnergy_data_0728.csv')
         # cols = [self.args.time_col, 'haifeng_True', 'haifeng_Pred']
         # cols = [self.args.time_col, 'pv_True', 'pv_Pred']
         # cols = [self.args.time_col, 'dpv_True', 'dpv_Pred']
         # cols = [self.args.time_col, 'lufeng_True', 'lufeng_Pred']
+        cols = [self.args.time_col, 'newEnergy_True', 'newEnergy_Pred']
         
         # # # 光伏数据处理
         # pv_columns = [col for col in df_power.columns if 'pv' in col.lower()]
@@ -31,16 +32,17 @@ class ReadData():
         # df_power.loc[time_mask, pv_columns] = 0
         # df_power['nnnewEnergy_True'] = df_power['haifeng_True'] + df_power['lufeng_True'] + df_power['pv_True'] + df_power['dpv_True']
         # df_power['nnnewEnergy_Pred'] = df_power['haifeng_Pred'] + df_power['lufeng_Pred'] + df_power['pv_Pred'] + df_power['dpv_Pred']
-        cols = [self.args.time_col, 'nnnewEnergy_True', 'nnnewEnergy_Pred']
+        # cols = [self.args.time_col, 'nnnewEnergy_True', 'nnnewEnergy_Pred']
         df_power = df_power[cols]
         
         # 功率数据根据装机情况归一化
-        df_scaled = self.__scale_power(df_power, '风光')  #海上风电
+        df_scaled = self.__scale_power(df_power, '风光')  #海上风电, 集中式光伏， 分布式光伏， 陆上风电，风光
         
         # 取日前预报气象数据
         temp = pd.read_csv('data/graph_a237_object_YHY003280_node_a960_run.csv')
+
         temp['time'] = pd.to_datetime(temp['time'])
-        cond = (temp['time'] >= pd.Timestamp('2024.06.01')) & (temp['time'] <= pd.Timestamp('2025.06.01'))
+        cond = (temp['time'] >= pd.Timestamp('2024.06.01')) & (temp['time'] <= pd.Timestamp('2025.09.01'))
         temp = temp[cond]
         temp = temp.set_index('time')
         
